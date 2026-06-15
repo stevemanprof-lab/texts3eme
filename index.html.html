@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>BEPC Anglais 2026 - Révision complète + Suivi élèves</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: system-ui, 'Segoe UI', 'Poppins', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 12px;
+        }
+        .container { max-width: 1300px; margin: 0 auto; background: white; border-radius: 28px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #0f2b4d 0%, #1a4a7a 100%); color: white; padding: 20px; text-align: center; }
+        .header h1 { font-size: 1.5rem; letter-spacing: -0.3px; }
+        .header p { font-size: 0.85rem; opacity: 0.85; margin-top: 5px; }
+        .teacher { margin-top: 10px; font-size: 0.8rem; background: rgba(255,255,255,0.2); display: inline-block; padding: 4px 16px; border-radius: 40px; }
+        
+        .student-section { background: #fef3c7; padding: 12px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+        .student-info { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        #studentNameInput { padding: 10px 16px; border-radius: 40px; border: 1px solid #f59e0b; font-size: 0.9rem; width: 180px; font-family: inherit; }
+        .btn-small { background: #f59e0b; border: none; padding: 8px 18px; border-radius: 40px; font-weight: 600; cursor: pointer; color: white; }
+        .btn-teacher { background: #0f2b4d; color: white; border: none; padding: 8px 18px; border-radius: 40px; font-weight: 600; cursor: pointer; }
+        .personal-score { background: #0f2b4d; padding: 8px 18px; border-radius: 40px; color: white; font-size: 0.8rem; font-weight: 500; }
+        
+        .teacher-panel { background: #1e293b; color: white; padding: 20px; margin: 0; display: none; }
+        .teacher-panel.show { display: block; }
+        .teacher-panel h3 { margin-bottom: 15px; }
+        .student-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-top: 15px; max-height: 500px; overflow-y: auto; }
+        .student-card { background: #334155; border-radius: 16px; padding: 12px; }
+        .student-name { font-weight: bold; font-size: 1.1rem; }
+        .student-progress { font-size: 0.8rem; margin-top: 8px; color: #cbd5e1; }
+        .progress-bar { background: #475569; border-radius: 20px; height: 8px; margin: 8px 0; overflow: hidden; }
+        .progress-fill { background: #f59e0b; height: 100%; border-radius: 20px; width: 0%; }
+        .export-btn { background: #22c55e; margin-top: 15px; padding: 10px 20px; border: none; border-radius: 40px; font-weight: bold; cursor: pointer; color: white; }
+        .delete-btn { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 40px; font-size: 0.7rem; cursor: pointer; margin-top: 8px; margin-right: 8px; }
+        .reset-btn-card { background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 40px; font-size: 0.7rem; cursor: pointer; margin-top: 8px; }
+        .btn-danger { background: #dc2626; border: none; padding: 10px 22px; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; margin-left: 10px; }
+        
+        .password-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        .password-box { background: white; border-radius: 32px; padding: 30px; text-align: center; max-width: 320px; width: 90%; }
+        .password-box input { padding: 12px; border-radius: 40px; border: 1px solid #ccc; width: 100%; margin: 15px 0; font-size: 1rem; text-align: center; }
+        .password-box button { background: #0f2b4d; color: white; padding: 10px 20px; border-radius: 40px; border: none; margin: 5px; cursor: pointer; }
+        
+        .nav-tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 8px; padding: 15px; background: #f8fafc; border-bottom: 2px solid #e2e8f0; scrollbar-width: thin; }
+        .nav-tabs::-webkit-scrollbar { height: 3px; }
+        .tab-btn { background: transparent; border: none; padding: 10px 18px; border-radius: 40px; font-weight: 600; cursor: pointer; font-size: 0.8rem; white-space: nowrap; color: #475569; transition: all 0.2s; }
+        .tab-btn.active { background: linear-gradient(135deg, #0f2b4d 0%, #1a4a7a 100%); color: white; }
+        .main-content { padding: 20px; background: #ffffff; min-height: 60vh; }
+        
+        .subjects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-top: 15px; }
+        .subject-card { background: white; border-radius: 24px; padding: 20px; cursor: pointer; transition: all 0.2s; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .subject-card:active { transform: scale(0.98); }
+        .card-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .card-title { font-size: 1.2rem; font-weight: 700; color: #0f2b4d; }
+        .card-summary { color: #64748b; font-size: 0.8rem; margin-top: 8px; line-height: 1.4; }
+        
+        .text-display { background: #fefce8; border-radius: 20px; padding: 20px; margin-bottom: 20px; border-left: 5px solid #f59e0b; }
+        .text-title { font-size: 1.4rem; font-weight: 700; color: #0f2b4d; }
+        .text-meta { font-size: 0.7rem; color: #64748b; margin: 12px 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
+        .audio-controls { display: flex; gap: 8px; }
+        .audio-btn { background: #0f2b4d; border: none; color: white; padding: 6px 14px; border-radius: 40px; font-size: 0.75rem; cursor: pointer; }
+        .audio-btn.stop { background: #dc2626; }
+        .text-content { font-size: 0.9rem; line-height: 1.6; max-height: 350px; overflow-y: auto; padding-right: 8px; }
+        .analysis { background: #eef2ff; border-radius: 20px; padding: 18px; margin-bottom: 25px; }
+        .analysis h3 { font-size: 1.1rem; color: #0f2b4d; margin-bottom: 10px; }
+        .analysis p { font-size: 0.85rem; margin-bottom: 6px; }
+        .quiz-header { font-weight: 700; font-size: 1.2rem; color: #0f2b4d; margin: 20px 0 12px; border-left: 4px solid #f59e0b; padding-left: 12px; }
+        
+        .question-card { background: #f8fafc; border-radius: 20px; padding: 16px; margin-bottom: 16px; border: 1px solid #e2e8f0; }
+        .question-text { font-weight: 600; font-size: 0.9rem; margin-bottom: 12px; }
+        .options { display: flex; flex-wrap: wrap; gap: 8px; }
+        .opt-btn { background: white; padding: 6px 14px; border-radius: 40px; border: 1.5px solid #cbd5e1; font-size: 0.8rem; cursor: pointer; transition: 0.1s; }
+        .opt-btn.selected { background: #0f2b4d; color: white; border-color: #0f2b4d; }
+        .feedback { margin-top: 10px; font-size: 0.75rem; padding: 6px 12px; border-radius: 30px; display: inline-block; }
+        .correct-feedback { background: #dcfce7; color: #166534; }
+        .wrong-feedback { background: #fee2e2; color: #991b1b; }
+        .quiz-buttons { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+        .btn-primary { background: #f59e0b; border: none; padding: 10px 22px; border-radius: 40px; font-weight: 600; cursor: pointer; color: white; }
+        .btn-secondary { background: #64748b; border: none; padding: 10px 22px; border-radius: 40px; font-weight: 600; color: white; cursor: pointer; }
+        
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; border-radius: 32px; max-width: 320px; width: 90%; text-align: center; padding: 28px 20px; animation: bounceIn 0.3s ease; }
+        @keyframes bounceIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .button-group { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+        footer { text-align: center; padding: 16px; background: #f1f5f9; font-size: 0.7rem; color: #64748b; }
+        @media (max-width: 550px) { .student-section { flex-direction: column; align-items: stretch; } .student-info { justify-content: space-between; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📚 BEPC ANGLAIS 2026</h1>
+        <p>RESPECT • EFFORT • RÉUSSITE</p>
+        <div class="teacher">✨ Conçu par Mr DOMINGO ✨</div>
+    </div>
+
+    <div class="student-section">
+        <div class="student-info">
+            <span>👤 Élève :</span>
+            <input type="text" id="studentNameInput" placeholder="Ton prénom + initiale" maxlength="30">
+            <button class="btn-small" id="saveStudentBtn">✅ Démarrer</button>
+            <button class="btn-teacher" id="teacherBtn">👨‍🏫 Panel Enseignant 🔒</button>
+        </div>
+        <div class="personal-score" id="personalScoreDisplay">📊 Identifie-toi</div>
+    </div>
+
+    <div id="teacherPanel" class="teacher-panel">
+        <h3>👨‍🏫 TABLEAU DE BORD DES ÉLÈVES (Accès réservé)</h3>
+        <p style="margin-bottom: 10px;">📌 Gestion complète : voir, réinitialiser ou supprimer les comptes élèves.</p>
+        <div id="studentStatsContainer" class="student-stats"></div>
+        <div style="margin-top: 20px;">
+            <button class="export-btn" id="exportDataBtn">📎 Exporter les données (CSV)</button>
+            <button class="btn-danger" id="deleteAllBtn">⚠️ SUPPRIMER TOUS LES COMPTES</button>
+            <button class="btn-secondary" id="closeTeacherBtn" style="margin-left: 10px;">🔒 Fermer le panel</button>
+        </div>
+    </div>
+
+    <div class="nav-tabs" id="navTabs">
+        <button class="tab-btn active" data-text="0">🏠 Accueil</button>
+        <button class="tab-btn" data-text="1">📄 Anti-Cheating Hats</button>
+        <button class="tab-btn" data-text="2">🏀 Magic Johnson (HIV)</button>
+        <button class="tab-btn" data-text="3">🛡️ Kaitlyn Urenda</button>
+        <button class="tab-btn" data-text="4">📱 Dangers of Social Networks</button>
+        <button class="tab-btn" data-text="5">🌍 The Environment</button>
+    </div>
+
+    <div class="main-content" id="dynamicContent"></div>
+    <footer>🔊 Écoute chaque texte | 📝 100 questions à choix multiples | 👨‍🏫 Suivi individuel des élèves | 🔒 Accès enseignant protégé</footer>
+</div>
+
+<script>
+    // ==================== MOT DE PASSE ENSEIGNANT ====================
+    const TEACHER_PASSWORD = "domingo2026";  // 🔐 Changez ce mot de passe si nécessaire
+    let teacherAccessGranted = false;
+    if (sessionStorage.getItem('teacherAccess') === 'granted') teacherAccessGranted = true;
+
+    function requestTeacherAccess() {
+        if (teacherAccessGranted) { showTeacherPanel(); return; }
+        const modal = document.createElement('div'); modal.className = 'password-modal';
+        modal.innerHTML = `<div class="password-box"><div style="font-size:2rem;">🔐</div><h3>Accès enseignant réservé</h3><p>Seul Mr DOMINGO peut accéder aux données.</p><input type="password" id="teacherPasswordInput" placeholder="Mot de passe" autocomplete="off"><div><button id="submitPasswordBtn">✅ Valider</button><button id="cancelPasswordBtn">❌ Annuler</button></div><p style="font-size:0.7rem; margin-top:10px;">Contactez Mr DOMINGO pour le code.</p></div>`;
+        document.body.appendChild(modal);
+        document.getElementById('submitPasswordBtn').onclick = () => {
+            if (document.getElementById('teacherPasswordInput').value === TEACHER_PASSWORD) {
+                teacherAccessGranted = true; sessionStorage.setItem('teacherAccess', 'granted'); modal.remove(); showTeacherPanel();
+            } else { alert('❌ Mot de passe incorrect.'); modal.remove(); }
+        };
+        document.getElementById('cancelPasswordBtn').onclick = () => modal.remove();
+    }
+    function showTeacherPanel() { let p = document.getElementById("teacherPanel"); if (p.classList.contains("show")) p.classList.remove("show"); else { renderTeacherPanel(); p.classList.add("show"); } }
+
+    // ==================== TEXTES COMPLETS (INTÉGRAUX) ====================
+    const textsData = {
+        1: { title: "Anti-Cheating Hats", author: "UNKNOWN", source: "breakingnewsenglish.com", date: "October 27, 2022", nature: "Article informatif", summary: "Une université aux Philippines utilise des chapeaux anti-triche pour garantir l'honnêteté lors des examens.",
+          fullText: `Teachers and schools try many things to stop students cheating in exams. However, it is difficult to stop all students from cheating. Modern technology has given students new and novel ways to cheat.\n\nA college in the Philippines has adopted a low-tech way of making sure students keep their eyes only on their paper and not on those of students around them. The Bicol University College of Engineering is getting students to wear anti-cheating hats during tests. The hats prevent students from being able to see around them and peeking at others' papers. They can focus only on their own test paper. Students are happy with the idea because they get to design and make their own hat.\n\nPhotos of the anti-cheating hats have gone viral on social media. Students have come up with all kinds of weird and wonderful creations. They have used cardboard boxes, egg cartons, coat hangers and other recycled materials to create their hats.\n\nA professor said the hats were a "fun way" to make sure there was "integrity and honesty" in her tests. She added that the hats had been "really effective" in keeping students focused. The professor said: "I'm proud of my students because their engineering mid-term exams can be full of pressure and be stressful, yet they managed to add some colour and fun." Many students finished their tests early and no one was caught cheating.`,
+          questions: [
+            { text: "What is the title of the text?", options: ["Exam Rules", "Anti-Cheating Hats", "School Uniforms", "Student Creativity"], correct: 1 },
+            { text: "What is the nature of the text?", options: ["A poem", "An informative article", "A letter", "A biography"], correct: 1 },
+            { text: "Where did the story take place?", options: ["China", "South Africa", "The Philippines", "India"], correct: 2 },
+            { text: "What problem does the text discuss?", options: ["School violence", "Cheating in exams", "Lack of teachers", "Poor grades"], correct: 1 },
+            { text: "What has created new ways of cheating?", options: ["Books", "Technology", "Teachers", "Parents"], correct: 1 },
+            { text: "Which university adopted the anti-cheating hats?", options: ["Harvard University", "Bicol University", "Oxford University", "Stanford University"], correct: 1 },
+            { text: "What was the purpose of the hats?", options: ["To keep students warm", "To identify students", "To prevent cheating", "To advertise the school"], correct: 2 },
+            { text: "What could students focus on while wearing the hats?", options: ["The teacher", "The board", "Their own paper", "The clock"], correct: 2 },
+            { text: "How did students react to the idea?", options: ["They were angry", "They were happy", "They refused", "They were confused"], correct: 1 },
+            { text: "Who designed the hats?", options: ["Teachers", "Parents", "Students", "The principal"], correct: 2 },
+            { text: "What happened to photos of the hats?", options: ["They were deleted", "They went viral", "They were hidden", "They were sold"], correct: 1 },
+            { text: "Which material was used to make the hats?", options: ["Gold", "Glass", "Cardboard boxes", "Leather"], correct: 2 },
+            { text: "What other material was mentioned?", options: ["Egg cartons", "Steel", "Wood", "Cement"], correct: 0 },
+            { text: "What quality did the professor want to promote?", options: ["Competition", "Honesty", "Popularity", "Speed"], correct: 1 },
+            { text: "How did the professor describe the hats?", options: ["A boring method", "A fun way", "An expensive solution", "A punishment"], correct: 1 },
+            { text: "What effect did the hats have on students?", options: ["They became distracted", "They stayed focused", "They left the room", "They stopped studying"], correct: 1 },
+            { text: "How were the exams described?", options: ["Easy", "Stressful", "Short", "Simple"], correct: 1 },
+            { text: "What did students add to the exams?", options: ["Noise", "Colour and fun", "Music", "Technology"], correct: 1 },
+            { text: "Did many students finish early?", options: ["No", "Only one", "Yes", "Not mentioned"], correct: 2 },
+            { text: "How many students were caught cheating?", options: ["Ten", "Five", "One", "None"], correct: 3 }
+          ] },
+        2: { title: "Magic Johnson: 30 Years Living with HIV", author: "Steven Taranto", source: "CBSSports.com", date: "November 4, 2021", nature: "Article biographique", summary: "Magic Johnson partage son parcours avec le VIH et comment il a changé les perceptions sur cette maladie.",
+          fullText: `In an interview on CBS Mornings, Magic talked about his life with HIV. He explained how he was diagnosed before the 1991-92 NBA season. When he found out, it was a very sad and difficult time. The hardest thing for Magic was telling his wife, Cookie. They had just gotten married, and Cookie was pregnant with their first child. Magic said, "It was hard because I loved her so much, and I didn't want to hurt her." Cookie Johnson was worried, but she was also very supportive of her husband. She said, "It didn't matter to me how he got the virus. I was only thinking, You could die, and that was the most important thing to me."\n\nAt the time, many people had negative ideas about HIV and AIDS. There was a lot of fear and misunderstanding. Magic Johnson helped change some of these ideas. After his diagnosis, he continued to live his life and even returned to basketball. He played in the 1992 NBA All-Star game and was part of the famous "Dream Team" at the Olympics. "It was the right choice," Magic said. "I showed people that you can live a good and productive life, even with a serious disease."`,
+          questions: [
+            { text: "What is the title of the text?", options: ["Living with AIDS", "Magic Johnson: 30 Years Living with HIV", "The Dream Team", "A Basketball Legend"], correct: 1 },
+            { text: "Who is the main character of the text?", options: ["Michael Jordan", "LeBron James", "Magic Johnson", "Kobe Bryant"], correct: 2 },
+            { text: "What was Magic Johnson famous for?", options: ["Football", "Basketball", "Tennis", "Baseball"], correct: 1 },
+            { text: "Which team did Magic Johnson play for?", options: ["Chicago Bulls", "Boston Celtics", "Los Angeles Lakers", "Miami Heat"], correct: 2 },
+            { text: "How long has Magic Johnson been living with HIV?", options: ["10 years", "20 years", "25 years", "30 years"], correct: 3 },
+            { text: "What is HIV?", options: ["A type of cancer", "A virus", "A vaccine", "A medicine"], correct: 1 },
+            { text: "What has made it possible for people with HIV to live longer?", options: ["Luck", "Exercise", "Medicine", "Sports"], correct: 2 },
+            { text: "On which program did Magic Johnson talk about his life?", options: ["NBA Live", "CBS Mornings", "BBC News", "CNN Sports"], correct: 1 },
+            { text: "When was Magic diagnosed with HIV?", options: ["Before the 1991–92 NBA season", "After retirement", "During the Olympics", "As a child"], correct: 0 },
+            { text: "Who was the hardest person for Magic to tell?", options: ["His coach", "His mother", "His wife Cookie", "His son"], correct: 2 },
+            { text: "What was Cookie Johnson's situation at the time?", options: ["She was studying", "She was pregnant", "She was ill", "She was travelling"], correct: 1 },
+            { text: "How did Cookie react to the news?", options: ["She left him", "She became angry", "She supported him", "She ignored him"], correct: 2 },
+            { text: "What was people's attitude toward HIV at that time?", options: ["There was fear and misunderstanding", "There was no concern", "Everyone understood HIV", "People celebrated it"], correct: 0 },
+            { text: "What did Magic Johnson help change?", options: ["Basketball rules", "People's ideas about HIV", "American politics", "Hospital policies"], correct: 1 },
+            { text: "Did Magic stop playing basketball after his diagnosis?", options: ["Yes, immediately", "No, he returned later", "No, he never left", "Not mentioned"], correct: 1 },
+            { text: "Which special game did he play in during 1992?", options: ["World Cup Final", "NBA All-Star Game", "Super Bowl", "Wimbledon Final"], correct: 1 },
+            { text: "What famous Olympic team did he join?", options: ["The Golden Team", "The Victory Team", "The Dream Team", "The Star Team"], correct: 2 },
+            { text: "What message did Magic Johnson send to people?", options: ["Life ends after HIV", "You can live a productive life with HIV", "Sports cure HIV", "Only athletes survive HIV"], correct: 1 },
+            { text: "What is the author's purpose?", options: ["To criticize Magic Johnson", "To inform and inspire readers", "To advertise basketball", "To promote medicine"], correct: 1 },
+            { text: "What is the main lesson of the text?", options: ["Success is impossible with HIV", "Support and determination help overcome challenges", "Basketball is the best sport", "HIV only affects athletes"], correct: 1 }
+          ] },
+        3: { title: "Kaitlyn Urenda: From Victim to Advocate", author: "UNKNOWN", source: "RAINN Survivor Stories", date: "2024", nature: "Témoignage inspirant", summary: "Kaitlyn, survivante d'abus sexuel, devient défenseure de la sécurité des jeunes.",
+          fullText: `Kaitlyn Urenda is a mother, a high school coach, a swimmer, and a survivor of child sexual abuse. Kaitlyn was 14 years old when she was sexually attacked by a worker at her high school who was also a gymnastics coach. During the time of the abuse, Kaitlyn became pregnant by her attacker. She later told this to her school officials after she graduated, and he was fired. The attacker was then re-hired at her school even though the school district leaders knew that he had sexually abused her.\n\nKaitlyn first told the abuse to her counsellor. "I felt very comfortable talking with her. She prepared me on how to share the abuse with my mom and explained what grooming was and looked like. She helped me realize I was a victim of grooming. I then went home and told my mom, and she was supportive. It was sad and I could tell my mom was very upset."\n\nNow a youth coach herself, Kaitlyn is worried about potential predators' access to young people. She notes that she has seen local news stories regularly over the past six years about a teacher or a coach attacking a student. "Coaches are the top attackers and there are a lot of reasons behind that. One, they are usually younger. You talk with your athletes more and spend more time with them. You have more things in common. You spend more time with your coaches than with your teachers."\n\nShe's happy to see more schools and youth-serving organizations making safety a top priority. In Texas, sex education is limited, which is why Kaitlyn advocates at the local, state, and national level. "We need to teach and talk about consent and grooming. Because I was so unaware of what that meant, it took so long to realize and process what actually happened to me."`,
+          questions: [
+            { text: "What is the title of the text?", options: ["A School Coach", "Kaitlyn Urenda: From Victim to Advocate", "Protecting Children", "A Survivor's Journey"], correct: 1 },
+            { text: "Who is the main character of the text?", options: ["Cookie Johnson", "Kaitlyn Urenda", "Her counsellor", "Her mother"], correct: 1 },
+            { text: "What is Kaitlyn's profession today?", options: ["A doctor", "A lawyer", "A youth coach", "A journalist"], correct: 2 },
+            { text: "How old was Kaitlyn when the abuse began?", options: ["10", "12", "14", "16"], correct: 2 },
+            { text: "Who abused Kaitlyn?", options: ["A classmate", "A teacher and gymnastics coach", "A neighbour", "A family member"], correct: 1 },
+            { text: "What happened during the period of abuse?", options: ["She changed schools", "She became pregnant", "She moved away", "She left sports"], correct: 1 },
+            { text: "When did Kaitlyn report the abuse?", options: ["Immediately", "Before entering high school", "After she graduated", "After becoming a coach"], correct: 2 },
+            { text: "What happened to the attacker after the report?", options: ["He was promoted", "He was arrested immediately", "He was fired", "He left the country"], correct: 2 },
+            { text: "What surprising decision did the school make later?", options: ["They ignored Kaitlyn", "They rehired the attacker", "They closed the school", "They changed principals"], correct: 1 },
+            { text: "Who was the first person Kaitlyn told about the abuse?", options: ["Her father", "Her best friend", "Her counsellor", "Her teacher"], correct: 2 },
+            { text: "What did the counsellor explain to Kaitlyn?", options: ["Sports rules", "Grooming", "School regulations", "Medical treatment"], correct: 1 },
+            { text: "Who supported Kaitlyn after she revealed the abuse?", options: ["Only her coach", "Her mother", "Her attacker", "Nobody"], correct: 1 },
+            { text: "How did Kaitlyn's mother feel?", options: ["Happy", "Indifferent", "Upset but supportive", "Angry at Kaitlyn"], correct: 2 },
+            { text: "What worries Kaitlyn today?", options: ["The cost of education", "Predators' access to young people", "The lack of sports facilities", "Climate change"], correct: 1 },
+            { text: "According to Kaitlyn, who are often the top attackers?", options: ["Parents", "Students", "Coaches", "Doctors"], correct: 2 },
+            { text: "Why can coaches have influence over young people?", options: ["They spend a lot of time with them", "They give money to students", "They live with students", "They are older"], correct: 0 },
+            { text: "What positive change has Kaitlyn noticed?", options: ["More schools are prioritizing safety", "Schools are removing sports", "Students no longer use social media", "Teachers are leaving schools"], correct: 0 },
+            { text: "In which state does Kaitlyn say sex education is limited?", options: ["California", "Florida", "Texas", "Nevada"], correct: 2 },
+            { text: "What topics does Kaitlyn advocate teaching?", options: ["Mathematics and science", "Consent and grooming", "Sports and fitness", "Technology and coding"], correct: 1 },
+            { text: "What is the main message of the text?", options: ["Abuse should remain secret", "Victims should speak out and be supported", "Schools cannot protect students", "Coaching should be banned"], correct: 1 }
+          ] },
+        4: { title: "The Dangers of Social Networking", author: "Northern Ireland Executive", source: "nidirect.gov.uk", date: "2021", nature: "Article préventif", summary: "Présente les risques des réseaux sociaux (cyberharcèlement, usurpation d'identité, grooming) et donne des conseils pour s'en protéger.",
+          fullText: `Social media websites and apps are very popular, especially with young people. They allow you to share messages, photos, and films. The sites are a fun way for you to stay connected with your friends, family, and peers.\n\nIt is true that social media are very useful, but they are not always safe. The danger is that threats exist in a new online environment you may not be familiar with. As with most potential online dangers, the problems can start if you don't look after your personal information properly. The risks you need to be aware of are: cyberbullying (bullying using digital technology), invasion of privacy, identity theft, you or a child may see offensive images and messages, come across fake news, or encounter strangers who may be there to 'groom' other members.\n\nThere are various things that you should do to stay safe while using social networks. You need to make sure that you don't publish personal information like your location, email address, phone number, or date of birth. Make sure you are very careful about what images and messages you post, even among trusted friends. Once they are online, they can be shared widely and are extremely difficult to remove. If you make an online friend and want to meet up with them, be accompanied by an older relative because they may be lying about their identity. You should also verify the information online before you believe it.`,
+          questions: [
+            { text: "What is the title of Text 4?", options: ["Social Media Fun", "The Dangers of Social Networking", "How to Use Facebook", "Online Games"], correct: 1 },
+            { text: "Who is the author of this text?", options: ["Steven Taranto", "Northern Ireland Executive", "UNKNOWN", "Lingua.com"], correct: 1 },
+            { text: "What is one positive aspect of social media mentioned?", options: ["They cause stress", "They help you stay connected with friends", "They are always dangerous", "They replace school"], correct: 1 },
+            { text: "According to the text, why can social media be unsafe?", options: ["Because they are expensive", "Because threats exist in a new online environment", "Because they are illegal", "Because they require a computer"], correct: 1 },
+            { text: "What can happen if you don't protect your personal information?", options: ["You win a prize", "You become famous", "Problems like identity theft can occur", "Nothing happens"], correct: 2 },
+            { text: "Which of these is a risk mentioned in the text?", options: ["Winning too many games", "Cyberbullying", "Getting too many likes", "Making too many friends"], correct: 1 },
+            { text: "What does 'grooming' refer to in the text?", options: ["Brushing your hair", "Strangers trying to harm or manipulate young people", "Cleaning your profile", "Sharing photos"], correct: 1 },
+            { text: "What type of information should you NOT publish online?", options: ["Your favorite color", "Your pet's name", "Your phone number and location", "Your hobby"], correct: 2 },
+            { text: "Why should you be careful about images and messages you post?", options: ["They are always deleted quickly", "They can be shared widely and are hard to remove", "They are private forever", "They cannot be seen by others"], correct: 1 },
+            { text: "What should you do if an online friend wants to meet you?", options: ["Go alone to be brave", "Meet secretly", "Be accompanied by an older relative", "Never go"], correct: 2 },
+            { text: "Why might an online stranger lie about their identity?", options: ["To play a game", "To become popular", "To harm you (grooming)", "To share news"], correct: 2 },
+            { text: "What should you do before believing information online?", options: ["Share it immediately", "Like it first", "Verify it", "Ignore it"], correct: 2 },
+            { text: "What is fake news?", options: ["True stories", "Official information", "False or misleading information presented as news", "Entertainment shows"], correct: 2 },
+            { text: "According to the text, once something is online, it is:", options: ["Easy to remove", "Extremely difficult to remove", "Automatically deleted after one day", "Visible only to you"], correct: 1 },
+            { text: "What is the main purpose of this text?", options: ["To ban social media", "To scare young people", "To educate readers about online safety", "To sell smartphones"], correct: 2 },
+            { text: "Who is the primary audience for this text?", options: ["Politicians", "Teachers only", "Young people and social media users", "Police officers"], correct: 2 },
+            { text: "What does the text say about meeting online friends?", options: ["It is always safe", "You should go alone", "They may be lying about their identity", "You should never talk to them"], correct: 2 },
+            { text: "Which of the following is NOT mentioned as a risk?", options: ["Identity theft", "Invasion of privacy", "Winning a lottery", "Offensive images"], correct: 2 },
+            { text: "What attitude does the text have toward social media?", options: ["They are completely evil", "They are useful but not always safe", "They should be banned for everyone", "They are only for adults"], correct: 1 },
+            { text: "What is the key message of Text 4?", options: ["Never use social media", "Only use social media at night", "Protect your personal information and stay safe online", "Share everything with strangers"], correct: 2 }
+          ] },
+        5: { title: "The Environment", author: "UNKNOWN", source: "Lingua.com", date: "Not specified", nature: "Sensibilisation environnementale", summary: "Explique le réchauffement climatique, la pollution atmosphérique et les conséquences, avec des solutions (réduire, réutiliser, recycler).",
+          fullText: `In our modern world, there are many factors that place the wellbeing of the planet in jeopardy. While some people have the opinion that environmental problems are just a natural occurrence, others believe that human beings have a huge impact on the environment. Regardless of your viewpoint, take into consideration the following factors that place our environment as well as the planet Earth in danger.\n\nGlobal warming or climate change is a major contributing factor to environmental damage. Because of global warming, we have seen an increase in melting ice caps, a rise in sea levels, and the formation of new weather patterns.\n\nAir pollution is primarily caused as a result of excessive and unregulated emissions of carbon dioxide into the air. Pollutants mostly emerge from the burning of fossil fuels in addition to chemicals, toxic substances, and improper waste disposal.\n\nUltimately, the effects of the modern world on the environment can lead to many problems. Human beings need to consider the repercussions of their actions, trying to reduce, reuse, and recycle materials while establishing environmentally sustainable habits. If measures are not taken to protect the environment, we can potentially witness the extinction of more endangered species, worldwide pollution, and a completely uninhabitable planet.`,
+          questions: [
+            { text: "What is the title of Text 5?", options: ["Global Warming", "The Environment", "Air Pollution", "Recycling"], correct: 1 },
+            { text: "Who is the author of this text?", options: ["Northern Ireland Executive", "Steven Taranto", "UNKNOWN", "Lingua.com (author not specified)"], correct: 2 },
+            { text: "What is the source of this text?", options: ["CBSSports.com", "Rainn.org", "Lingua.com", "Nidirect.gov.uk"], correct: 2 },
+            { text: "According to the text, what do some people believe about environmental problems?", options: ["They are not real", "They are just a natural occurrence", "They are caused by aliens", "They will disappear soon"], correct: 1 },
+            { text: "What do other people believe?", options: ["Nature will fix everything", "Humans have a huge impact on the environment", "Pollution is good", "Only animals cause damage"], correct: 1 },
+            { text: "What is another name for global warming mentioned in the text?", options: ["Greenhouse effect", "Climate change", "Ozone layer", "Solar radiation"], correct: 1 },
+            { text: "Which of these is a consequence of global warming?", options: ["More forests", "Melting ice caps", "Less wind", "Lower sea levels"], correct: 1 },
+            { text: "What happens to sea levels because of global warming?", options: ["They decrease", "They stay the same", "They rise", "They freeze"], correct: 2 },
+            { text: "What is the primary cause of air pollution according to the text?", options: ["Too many trees", "Excessive and unregulated emissions of carbon dioxide", "Electric cars", "Rain"], correct: 1 },
+            { text: "Where do pollutants mostly emerge from?", options: ["Solar panels", "Burning of fossil fuels", "Wind turbines", "Recycling bins"], correct: 1 },
+            { text: "What are fossil fuels? (implied in the text)", options: ["Renewable energy sources", "Coal, oil, and natural gas", "Solar and wind power", "Nuclear energy"], correct: 1 },
+            { text: "Besides burning fossil fuels, what else causes pollution?", options: ["Planting trees", "Chemicals, toxic substances, and improper waste disposal", "Rainwater", "Fresh air"], correct: 1 },
+            { text: "What does the text say humans need to consider?", options: ["The price of oil", "The repercussions of their actions", "Faster cars", "More factories"], correct: 1 },
+            { text: "What three actions does the text recommend?", options: ["Eat, sleep, play", "Reduce, reuse, recycle", "Run, jump, swim", "Buy, sell, trade"], correct: 1 },
+            { text: "What could happen if no measures are taken to protect the environment?", options: ["Nothing", "Extinction of more endangered species", "The planet will get colder", "Pollution will stop"], correct: 1 },
+            { text: "What does 'uninhabitable planet' mean?", options: ["A planet with many people", "A planet where humans cannot live", "A planet with more trees", "A beautiful planet"], correct: 1 },
+            { text: "What is the author's purpose?", options: ["To scare children", "To warn readers and encourage environmental action", "To sell products", "To criticize governments only"], correct: 1 },
+            { text: "Which of these is NOT mentioned as a consequence of global warming?", options: ["New weather patterns", "Rising sea levels", "More earthquakes", "Melting ice caps"], correct: 2 },
+            { text: "What does 'repercussions' mean in this text?", options: ["Benefits", "Negative consequences or effects", "Jokes", "Celebrations"], correct: 1 },
+            { text: "What is the main message of Text 5?", options: ["The environment is fine", "Only factories cause problems", "Human actions damage the environment, but we can help by reducing, reusing, and recycling", "Climate change is a natural joke"], correct: 2 }
+          ] }
+    };
+
+    // ==================== GESTION DES ÉLÈVES ====================
+    let currentStudent = localStorage.getItem("bepc_student") || "";
+    let allStudentsData = JSON.parse(localStorage.getItem("bepc_all_students") || "{}");
+
+    function saveAllStudents() { localStorage.setItem("bepc_all_students", JSON.stringify(allStudentsData)); }
+    function initStudentData(name) {
+        if (!allStudentsData[name]) {
+            allStudentsData[name] = { createdAt: new Date().toISOString(), lastActive: new Date().toISOString(), texts: {} };
+            for (let t = 1; t <= 5; t++) allStudentsData[name].texts[`text${t}`] = new Array(textsData[t].questions.length).fill(null);
+            saveAllStudents();
+        }
+        allStudentsData[name].lastActive = new Date().toISOString();
+        saveAllStudents();
+    }
+    function getStudentAnswers(name, textId) { if (!allStudentsData[name]) initStudentData(name); return allStudentsData[name].texts[`text${textId}`]; }
+    function saveStudentAnswers(name, textId, answers) { if (!allStudentsData[name]) initStudentData(name); allStudentsData[name].texts[`text${textId}`] = answers; allStudentsData[name].lastActive = new Date().toISOString(); saveAllStudents(); updatePersonalDisplay(); if (teacherAccessGranted && document.getElementById("teacherPanel").classList.contains("show")) renderTeacherPanel(); }
+    function updatePersonalDisplay() {
+        let d = document.getElementById("personalScoreDisplay");
+        if (!currentStudent) { d.innerHTML = "📊 Identifie-toi"; return; }
+        let correct = 0, answered = 0;
+        for (let t = 1; t <= 5; t++) { let a = getStudentAnswers(currentStudent, t); if (a) for (let i = 0; i < a.length; i++) { if (a[i] !== null) { answered++; if (a[i] === textsData[t].questions[i].correct) correct++; } } }
+        d.innerHTML = `🎓 ${currentStudent} | ✅ ${correct} bonnes | 📝 ${answered}/100`;
+    }
+    function deleteStudentAccount(name) { if (confirm(`⚠️ Supprimer définitivement "${name}" ?`)) { delete allStudentsData[name]; saveAllStudents(); if (currentStudent === name) { currentStudent = ""; localStorage.removeItem("bepc_student"); document.getElementById("studentNameInput").value = ""; updatePersonalDisplay(); showHomepage(); } renderTeacherPanel(); alert(`✅ "${name}" supprimé.`); } }
+    function resetStudentProgress(name) { if (confirm(`Réinitialiser les progrès de ${name} ?`)) { initStudentData(name); if (currentStudent === name) { let at = document.querySelector('.tab-btn.active')?.dataset.text; if (at && at !== '0') showText(parseInt(at)); } renderTeacherPanel(); updatePersonalDisplay(); } }
+    function deleteAllStudents() { if (confirm("⚠️⚠️ SUPPRIMER TOUS LES COMPTES ? (irréversible)")) { let c = Object.keys(allStudentsData).length; allStudentsData = {}; saveAllStudents(); currentStudent = ""; localStorage.removeItem("bepc_student"); document.getElementById("studentNameInput").value = ""; updatePersonalDisplay(); showHomepage(); renderTeacherPanel(); alert(`${c} compte(s) supprimé(s).`); } }
+    function exportCSV() {
+        let rows = [["Élève", "Texte1", "Texte2", "Texte3", "Texte4", "Texte5", "Total/100", "%", "Création", "Dernière activité"]];
+        for (let name of Object.keys(allStudentsData)) {
+            let d = allStudentsData[name], total = 0, scores = [];
+            for (let t = 1; t <= 5; t++) { let correct = 0, a = d.texts[`text${t}`]; if (a) for (let i = 0; i < a.length; i++) if (a[i] !== null && a[i] === textsData[t].questions[i].correct) correct++; scores.push(`${correct}/20`); total += correct; }
+            rows.push([name, ...scores, `${total}/100`, `${Math.round(total)}%`, new Date(d.createdAt).toLocaleDateString(), new Date(d.lastActive).toLocaleDateString()]);
+        }
+        let blob = new Blob(["\uFEFF" + rows.map(r => r.join(",")).join("\n")], { type: "text/csv;charset=utf-8;" });
+        let a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `eleves_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+    }
+    function renderTeacherPanel() {
+        if (!teacherAccessGranted) return;
+        let cont = document.getElementById("studentStatsContainer"); if (!cont) return;
+        let students = Object.keys(allStudentsData);
+        if (students.length === 0) { cont.innerHTML = "<p style='color:#94a3b8'>Aucun élève enregistré.</p>"; return; }
+        cont.innerHTML = "";
+        for (let name of students) {
+            let d = allStudentsData[name], totalCorrect = 0, totalPossible = 100;
+            for (let t = 1; t <= 5; t++) { let a = d.texts[`text${t}`]; if (a) for (let i = 0; i < a.length; i++) if (a[i] !== null && a[i] === textsData[t].questions[i].correct) totalCorrect++; }
+            let percent = Math.round(totalCorrect / totalPossible * 100);
+            let card = document.createElement("div"); card.className = "student-card";
+            card.innerHTML = `<div class="student-name">📖 ${name}</div><div class="student-progress">✅ ${totalCorrect} bonnes réponses</div><div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div><div class="student-progress">📊 ${percent}% (${totalCorrect}/100)</div><div class="student-progress">🕐 Dernière activité: ${new Date(d.lastActive).toLocaleDateString()}</div><div class="button-group"><button class="reset-btn-card" onclick="resetStudentProgress('${name}')">🔄 Réinitialiser</button><button class="delete-btn" onclick="deleteStudentAccount('${name}')">🗑️ Supprimer</button></div>`;
+            cont.appendChild(card);
+        }
+    }
+
+    // ==================== AUDIO & QUIZ ====================
+    let currentUtterance = null;
+    function stopSpeech() { if (currentUtterance) { window.speechSynthesis.cancel(); currentUtterance = null; } }
+    function speakText(txt) { stopSpeech(); let u = new SpeechSynthesisUtterance(txt); u.lang = 'en-US'; u.rate = 0.9; currentUtterance = u; window.speechSynthesis.speak(u); }
+    function showModal(correct, total, percent, msg) { let m = document.createElement('div'); m.className = 'modal'; m.innerHTML = `<div class="modal-content"><div style="font-size:2rem">${percent}%</div><div>${correct}/${total}</div><p>${msg}</p><button class="btn-primary" onclick="this.parentElement.parentElement.remove()">Fermer</button></div>`; document.body.appendChild(m); }
+    function buildQuiz(textId, container) {
+        let qs = textsData[textId].questions;
+        let answers = currentStudent ? [...getStudentAnswers(currentStudent, textId)] : new Array(qs.length).fill(null);
+        let div = document.createElement('div');
+        qs.forEach((q, idx) => {
+            let card = document.createElement('div'); card.className = 'question-card';
+            card.innerHTML = `<div class="question-text">${idx+1}. ${q.text}</div><div class="options" id="opts-${idx}"></div><div class="feedback" id="fb-${idx}"></div>`;
+            div.appendChild(card);
+            let opts = card.querySelector(`#opts-${idx}`);
+            q.options.forEach((opt, oidx) => {
+                let btn = document.createElement('span'); btn.className = 'opt-btn'; btn.innerText = opt;
+                btn.onclick = () => { answers[idx] = oidx; updateDisplay(card, oidx, q.correct, q.options); if (currentStudent) saveStudentAnswers(currentStudent, textId, answers); };
+                opts.appendChild(btn);
+            });
+            if (answers[idx] !== null) updateDisplay(card, answers[idx], q.correct, q.options);
+        });
+        let btns = document.createElement('div'); btns.className = 'quiz-buttons';
+        let scoreBtn = document.createElement('button'); scoreBtn.className = 'btn-primary'; scoreBtn.innerText = '🏆 Voir ma note';
+        scoreBtn.onclick = () => { let c = 0; for (let i = 0; i < qs.length; i++) if (answers[i] !== null && answers[i] === qs[i].correct) c++; let p = Math.round(c/qs.length*100); let msg = p>=80 ? "🎉 EXCELLENT !" : (p>=50 ? "👍 Bien, continue !" : "📚 Revois le texte !"); showModal(c, qs.length, p, msg); };
+        let resetBtn = document.createElement('button'); resetBtn.className = 'btn-secondary'; resetBtn.innerText = '🔄 Réinitialiser';
+        resetBtn.onclick = () => { answers.fill(null); if (currentStudent) saveStudentAnswers(currentStudent, textId, answers); document.querySelectorAll('.question-card').forEach(c => { c.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected')); let fb = c.querySelector('.feedback'); fb.innerHTML = ''; fb.className = 'feedback'; }); };
+        btns.appendChild(scoreBtn); btns.appendChild(resetBtn); div.appendChild(btns); container.appendChild(div);
+        function updateDisplay(card, sel, corr, optsArr) { let btns = card.querySelectorAll('.opt-btn'); btns.forEach((b, i) => { b.classList.remove('selected'); if (i === sel) b.classList.add('selected'); }); let fb = card.querySelector('.feedback'); if (sel === corr) { fb.innerHTML = '✅ Bonne réponse !'; fb.className = 'feedback correct-feedback'; } else { fb.innerHTML = `❌ Mauvaise réponse. Bonne: ${optsArr[corr]}`; fb.className = 'feedback wrong-feedback'; } }
+    }
+    function showText(id) {
+        let d = textsData[id];
+        let cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `<div class="text-display"><div class="text-title">📖 ${d.title}</div><div class="text-meta"><span>✍️ ${d.author} | 📰 ${d.source} | 📅 ${d.date}</span><div class="audio-controls"><button class="audio-btn" id="playAudio">🔊 Lire le texte</button><button class="audio-btn stop" id="stopAudio">⏹️ Arrêter</button></div></div><div class="text-content" id="txtContent">${d.fullText.replace(/\n/g, '<br>')}</div></div><div class="analysis"><h3>📌 Analyse du texte</h3><p><strong>Nature :</strong> ${d.nature}</p><p><strong>Résumé :</strong> ${d.summary}</p></div><div class="quiz-header">📝 Questionnaire (20 questions)</div>`;
+        let quizZone = document.createElement('div'); cont.appendChild(quizZone); buildQuiz(id, quizZone);
+        document.getElementById('playAudio')?.addEventListener('click', () => speakText(document.getElementById('txtContent')?.innerText || d.fullText));
+        document.getElementById('stopAudio')?.addEventListener('click', stopSpeech);
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`.tab-btn[data-text="${id}"]`).classList.add('active');
+    }
+    function showHomepage() {
+        document.getElementById('dynamicContent').innerHTML = `<div style="text-align:center; padding:30px"><h2 style="color:#0f2b4d">📖 Choisis un texte à réviser</h2><p style="color:#64748b">Clique sur une carte ci-dessous</p><div class="subjects-grid">${[1,2,3,4,5].map(i => `<div class="subject-card" onclick="showText(${i})"><div class="card-icon">${["📄","🏀","🛡️","📱","🌍"][i-1]}</div><div class="card-title">${textsData[i].title}</div><div class="card-summary">${textsData[i].summary.substring(0,80)}...</div></div>`).join('')}</div></div>`;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('.tab-btn[data-text="0"]').classList.add('active');
+    }
+
+    // ==================== INITIALISATION ====================
+    window.showText = showText;
+    window.deleteStudentAccount = deleteStudentAccount;
+    window.resetStudentProgress = resetStudentProgress;
+    let saved = localStorage.getItem("bepc_student");
+    if (saved) { currentStudent = saved; document.getElementById("studentNameInput").value = saved; initStudentData(saved); updatePersonalDisplay(); }
+    document.getElementById("saveStudentBtn").onclick = () => { let n = document.getElementById("studentNameInput").value.trim(); if (n) { currentStudent = n; localStorage.setItem("bepc_student", n); initStudentData(n); updatePersonalDisplay(); alert(`✅ Bienvenue ${n} !`); showHomepage(); } else alert("Entre ton prénom"); };
+    document.getElementById("teacherBtn").onclick = requestTeacherAccess;
+    document.getElementById("closeTeacherBtn").onclick = () => document.getElementById("teacherPanel").classList.remove("show");
+    document.getElementById("exportDataBtn").onclick = exportCSV;
+    document.getElementById("deleteAllBtn").onclick = deleteAllStudents;
+    document.querySelectorAll('.tab-btn').forEach(btn => { btn.onclick = () => { let i = parseInt(btn.dataset.text); if (i === 0) showHomepage(); else showText(i); }; });
+    showHomepage();
+</script>
+</body>
+</html>
